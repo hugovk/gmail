@@ -1,33 +1,43 @@
+#!/usr/bin/env python
+"""Command-line Gmail message reader."""
 import argparse
 import email
 import getpass
 import imaplib
 
-parser = argparse.ArgumentParser(description='Gmail message reader.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('-u', '--username',  default='your_username',
-        help='Gmail username.')
-parser.add_argument('-p', '--password',  
-        help='Gmail password.')
-
-parser.add_argument('-n', '--number', default=1, type=int, 
-        help='Number of emails to show.')
-
-parser.add_argument('-t', '--to', 
-        help='Only emails with this in "To:".')
-parser.add_argument('-f', '--from_text', 
-        help='Only emails with this in "From:".')
-parser.add_argument('-c', '-cc', '--cc', 
-        help='Only emails with this in "CC:".')
-parser.add_argument('-B', '-bcc', '--bcc', 
-        help='Only emails with this in "BCC:".')
-parser.add_argument('-s', '--subject', 
-        help='Only emails with this in "Subject:".')
-parser.add_argument('-b', '--body', 
-        help='Only emails with this in "Body:".')
-parser.add_argument('text', nargs='?', 
-        help='Only emails with this in any field.')
-parser.add_argument('--summary', '--nobody', action='store_true',
-        help="Show summary (don't show body).")
+parser = argparse.ArgumentParser(
+    description='Command-line Gmail message reader.',
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument(
+    '-u', '--username',  default='your_username', help='Gmail username.')
+parser.add_argument('-p', '--password', help='Gmail password.')
+parser.add_argument(
+    '-n', '--number', default=1, type=int,
+    help='Number of emails to show.')
+parser.add_argument(
+    '-t', '--to',
+    help='Only emails with this in "To:".')
+parser.add_argument(
+    '-f', '--from_text',
+    help='Only emails with this in "From:".')
+parser.add_argument(
+    '-c', '-cc', '--cc',
+    help='Only emails with this in "CC:".')
+parser.add_argument(
+    '-B', '-bcc', '--bcc',
+    help='Only emails with this in "BCC:".')
+parser.add_argument(
+    '-s', '--subject',
+    help='Only emails with this in "Subject:".')
+parser.add_argument(
+    '-b', '--body',
+    help='Only emails with this in "Body:".')
+parser.add_argument(
+    'text', nargs='?',
+    help='Only emails with this in any field.')
+parser.add_argument(
+    '--summary', '--nobody', action='store_true',
+    help="Show summary (don't show body).")
 
 args = parser.parse_args()
 
@@ -65,22 +75,27 @@ args.password = None
 m.select("[Gmail]/All Mail", readonly=True)
 result, data = m.search(None, search_string)
 
-ids = data[0] # data is a list
-id_list = ids.split() # ids is a space separated string
+ids = data[0]  # data is a list
+id_list = ids.split()  # ids is a space separated string
 
 print len(id_list), "emails found"
 
 for email_id in reversed(id_list):
-    result, data = m.fetch(email_id, "(RFC822)") # fetch the email body (RFC822) for the given ID
-    raw_email = data[0][1] # here's the body, which is raw text of the whole email including headers and alternate payloads
+    # Fetch the email body (RFC822) for the given ID
+    result, data = m.fetch(email_id, "(RFC822)")
+    # Here's the body, which is raw text of the whole email
+    # including headers and alternate payloads
+    raw_email = data[0][1]
     email_message = email.message_from_string(raw_email)
     print "From:\t\t", email_message['From']
     print "To:\t\t", email_message['To']
-    if email_message['Cc']: print "CC:\t\t", email_message['Cc']
+    if email_message['Cc']:
+        print "CC:\t\t", email_message['Cc']
     print "Date:\t\t", email_message['Date']
     print "Subject:\t", email_message['Subject']
     for part in email_message.walk():
-        if (not args.summary) and (part.get_content_type() == "text/plain"): # ignore attachments/html
+         # Ignore attachments/html
+        if (not args.summary) and (part.get_content_type() == "text/plain"):
             body = part.get_payload(decode=True)
             print body
     print "-------------------------------------"
@@ -90,3 +105,4 @@ for email_id in reversed(id_list):
 
 m.logout()
 
+# End of file
